@@ -1,0 +1,23 @@
+# v1.0    2018-03-06     webmaster@highskillz.com
+#
+# Speed up moodle-based builds by pre-caching it in an image
+# It will be available for multi-image builds
+#
+FROM ez123/ops-base:alpine37
+
+LABEL maintainer="webdev@highskillz.com"
+
+ARG MOODLE__VERSION=34
+ARG MOODLE__FETCH_MODE=git
+ARG MOODLE__DEST_DIR=/tmp/moodle.src
+
+WORKDIR /tmp
+ADD ./fetch-moodle.sh ./
+RUN \
+    chmod -cR a+x /tmp/*.sh &&\
+    ./fetch-moodle.sh ${MOODLE__VERSION} ${MOODLE__DEST_DIR} ${MOODLE__FETCH_MODE} &&\
+    ls -la /tmp/* &&\
+    rm ./fetch-moodle.sh &&\
+    echo "OK!"
+
+ENTRYPOINT [exit]
