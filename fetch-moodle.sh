@@ -52,12 +52,12 @@ case "${MDL__FETCH_MODE}" in
             #GIT_HASH_SHORT=$(git rev-parse --verify --short HEAD)
             GIT_HASH_LONG="$(git show -s --format=%H)"
             GIT_HASH_SHORT="$(git show -s --format=%h)"
-            GIT_BRANCH_NAME="$(git rev-parse --abbrev-ref HEAD)"
+            GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
             touch                                        .moodle-version.env
             echo "MOODLE_VER=${MDL__VERSION}"         >> .moodle-version.env
             echo "GIT_HASH_SHORT=${GIT_HASH_SHORT}"   >> .moodle-version.env
             echo "GIT_HASH_LONG=${GIT_HASH_LONG}"     >> .moodle-version.env
-            echo "GIT_BRANCH_NAME=${GIT_BRANCH_NAME}" >> .moodle-version.env
+            echo "GIT_BRANCH=${GIT_BRANCH}" >> .moodle-version.env
 
             rm -rf .git
             popd
