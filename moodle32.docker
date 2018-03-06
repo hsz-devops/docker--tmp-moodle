@@ -12,11 +12,10 @@ LABEL maintainer="webdev@highskillz.com"
 ARG MOODLE__VERSION=32
 ARG MOODLE__FETCH_MODE=git
 
-WORKDIR /tmp
-ADD ./fetch-moodle.sh ./
+ADD ./fetch-moodle.sh /tmp
+RUN chmod -cR a+x     /tmp/*.sh
 RUN \
-    chmod -cR a+x /tmp/*.sh &&\
-    ./fetch-moodle.sh ${MOODLE__VERSION} /tmp/moodle ${MOODLE__FETCH_MODE} &&\
+    /tmp/fetch-moodle.sh ${MOODLE__VERSION} /tmp/moodle ${MOODLE__FETCH_MODE} &&\
     ls -la /tmp/* &&\
     echo "OK!"
 
