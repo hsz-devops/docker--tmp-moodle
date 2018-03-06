@@ -1,6 +1,7 @@
 /**/*.off
 /**/*.OFF
 .vscode/last.sql
+.vscode/temp.sql
 
 ### Ansible ###
 *.retry
