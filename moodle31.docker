@@ -4,10 +4,9 @@
 # It will be available for multi-image builds
 #
 FROM alpine:3.7 as base
+LABEL maintainer="webdev@highskillz.com"
 
 FROM ez123/ops-base:alpine37 as downloads
-
-LABEL maintainer="webdev@highskillz.com"
 
 ARG MOODLE__VERSION=31
 ARG MOODLE__FETCH_MODE=git
