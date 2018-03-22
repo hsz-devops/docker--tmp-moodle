@@ -1,4 +1,4 @@
-# v1.0    2018-03-06     webmaster@highskillz.com
+# v1.5    2018-03-06     webmaster@highskillz.com
 #
 # Speed up moodle-based builds by pre-caching it in an image
 # It will be available for multi-image builds
@@ -6,20 +6,27 @@
 FROM alpine:3.7 as base
 LABEL maintainer="webdev@highskillz.com"
 
+# ----------------------------------------------------------------
 FROM ez123/ops-base:alpine37 as downloads
 
 ARG MOODLE__VERSION=34
 ARG MOODLE__FETCH_MODE=git
+ARG SRC_ROOT=/tmp/repo
 
-ADD ./fetch-moodle.sh /tmp
-RUN chmod -cR a+x     /tmp/*.sh
+COPY ./*.sh        /tmp/
+RUN chmod -cR a+x  /tmp/*.sh
 RUN \
-    /tmp/fetch-moodle.sh ${MOODLE__VERSION} /tmp/moodle ${MOODLE__FETCH_MODE} &&\
+    mkdir -p ${SRC_ROOT} &&\
+    cd ${SRC_ROOT} &&\
+    ls -la . &&\
+    /tmp/fetch-moodle.sh ${MOODLE__VERSION} ${SRC_ROOT} ${MOODLE__FETCH_MODE} &&\
     ls -la /tmp/* &&\
-    echo "OK!"
+    cat /tmp/repo/.chkver.env &&\
+    echo "..."
 
+# ----------------------------------------------------------------
 FROM base as final
-ARG MOODLE__DEST_DIR=/tmp/moodle.src
-COPY --from=downloads /tmp/moodle ${MOODLE__DEST_DIR}
+COPY --from=downloads /tmp/repo/moodle       /tmp/moodle.bits/src
+COPY --from=downloads /tmp/repo/.chkver.env  /tmp/moodle.bits/
 
 ENTRYPOINT [exit]

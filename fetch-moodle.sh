@@ -13,6 +13,9 @@ set -e
 set -o pipefail
 set -x
 
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+T_STAMP=$(date -u +"%Y%m%d_%H%M%SZ")
+
 MDL__FETCH_MODE=${MDL__FETCH_MODE:-git}
 
 MDL__SRC_GIT="${MDL__SRC_GIT:-git://git.moodle.org/moodle.git}"
@@ -41,31 +44,25 @@ mkdir -p "$(dirname ${MDL__DEST_DIR})"
 
 case "${MDL__FETCH_MODE}" in
     "git")
-        pushd /tmp
-        if [ -f ./moodle -a "${DOCKER_MOODLE_SKIP_EXISTS}" != "0" ]; then
-            echo "Moodle GIT seems to already exist in [/tmp/moodle]... skipping pull..."
+        mkdir -p /tmp/temp
+        pushd /tmp/temp
+        if [ -d ./moodle -a "${DOCKER_MOODLE_SKIP_EXISTS}" != "0" ]; then
+            echo "Moodle GIT seems to already exist in [/tmp/temp/moodle/]... skipping pull..."
         else
-            time git clone -b "MOODLE_${MDL__VERSION}_STABLE" --depth=1 git://git.moodle.org/moodle.git
+            time git clone -b "MOODLE_${MDL__VERSION}_STABLE" --depth=1 git://git.moodle.org/moodle.git moodle
+
             pushd moodle
 
-            # GIT_HASH_LONG=$(git rev-parse --verify HEAD)
-            #GIT_HASH_SHORT=$(git rev-parse --verify --short HEAD)
-            GIT_HASH_LONG="$(git show -s --format=%H)"
-            GIT_HASH_SHORT="$(git show -s --format=%h)"
-            GIT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-            touch                                        .moodle-version.env
-            echo "MOODLE_VER=${MDL__VERSION}"         >> .moodle-version.env
-            echo "GIT_HASH_SHORT=${GIT_HASH_SHORT}"   >> .moodle-version.env
-            echo "GIT_HASH_LONG=${GIT_HASH_LONG}"     >> .moodle-version.env
-            echo "GIT_BRANCH=${GIT_BRANCH}" >> .moodle-version.env
+                ${THIS_DIR}/get-version-info.sh "${MDL__DEST_DIR}/.chkver.env"
 
-            rm -rf .git
+                rm -rf .git
             popd
         fi
         popd
     ;;
     "curl")
-        pushd /tmp
+        mkdir -p /tmp/temp
+        pushd /tmp/temp
         if [ -f ./moodle-latest.tgz -a "${DOCKER_MOODLE_SKIP_EXISTS}" != "0" ]; then
             echo "Moodle TGZ seems to already exist in [/tmp/moodle-latest.tgz]... skipping download..."
         else
@@ -75,8 +72,7 @@ case "${MDL__FETCH_MODE}" in
         #rm /var/www/html/index.html
         tar xzf ./moodle-latest.tgz
         pushd ./moodle
-            touch                                .moodle-version.env
-            echo "MOODLE_VER=${MDL__VERSION}" >> .moodle-version.env
+            ${THIS_DIR}/get-version-info.sh "${MDL__DEST_DIR}/.chkver.env"
         popd
 
         rm -rf ./moodle-latest.tgz
@@ -87,15 +83,15 @@ case "${MDL__FETCH_MODE}" in
     ;;
 esac
 
-if [ "${MDL__DEST_DIR}" != "/tmp/moodle" ]; then
-    mv /tmp/moodle ${MDL__DEST_DIR}
+if [ "${MDL__DEST_DIR}/src" != "/tmp/temp/moodle" ]; then
+    mv /tmp/temp/moodle ${MDL__DEST_DIR}
 fi
 
 ls -la "$(dirname ${MDL__DEST_DIR})"
 ls -la "${MDL__DEST_DIR}"
 
-[ -f "${MDL__DEST_DIR}/config-dist.php" ] || exit -21
-[ -f "${MDL__DEST_DIR}/install.php"     ] || exit -22
-[ -f "${MDL__DEST_DIR}/version.php"     ] || exit -23
+[ -f "${MDL__DEST_DIR}/moodle/config-dist.php" ] || exit -21
+[ -f "${MDL__DEST_DIR}/moodle/install.php"     ] || exit -22
+[ -f "${MDL__DEST_DIR}/moodle/version.php"     ] || exit -23
 
 echo "Moodle successfully fetched!!!"
